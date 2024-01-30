@@ -1,4 +1,4 @@
-#include <algorithm>
+п»ї#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const int MAX_RESULT_DOCUMENT_COUNT = 5;
+const int MAX_RESULT_DOCUMENT_COUNT = 5; 
 const double EPSILON = 1e-6;
 
 string ReadLine() {
@@ -28,10 +28,10 @@ int ReadLineWithNumber() {
 
 enum class DocumentStatus
 {
-    ACTUAL, // актуальный
-    IRRELEVANT, // устаревший
-    BANNED, // отклонённый
-    REMOVED // удалённый
+    ACTUAL, // Р°РєС‚СѓР°Р»СЊРЅС‹Р№
+    IRRELEVANT, // СѓСЃС‚Р°СЂРµРІС€РёР№
+    BANNED, // РѕС‚РєР»РѕРЅС‘РЅРЅС‹Р№
+    REMOVED // СѓРґР°Р»С‘РЅРЅС‹Р№
 };
 
 vector<string> SplitIntoWords(const string& text) {
@@ -123,7 +123,7 @@ public:
     tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
         const Query query = ParseQuery(raw_query);
         vector<string> matched_words;
-        for (const string& word : query.plus_words) { // проходимся по плюс-словам
+        for (const string& word : query.plus_words) { // РїСЂРѕС…РѕРґРёРјСЃСЏ РїРѕ РїР»СЋСЃ-СЃР»РѕРІР°Рј
             if (documents_.at(word).count(document_id)) {
                 matched_words.push_back(word);
             }
@@ -138,8 +138,8 @@ public:
     }
 
 private:
-    map<int, int> ratings; // <document_id, rating> ~ словарь рейтингов
-    map<int, DocumentStatus> status; // <document_id, status> ~ словарь статусов
+    map<int, int> ratings; // <document_id, rating> ~ СЃР»РѕРІР°СЂСЊ СЂРµР№С‚РёРЅРіРѕРІ
+    map<int, DocumentStatus> status; // <document_id, status> ~ СЃР»РѕРІР°СЂСЊ СЃС‚Р°С‚СѓСЃРѕРІ
     map<string, map<int, double>> documents_; // <word, map<id_document, relevance>> 
     int document_count_{};
     set<string> stop_words_;
@@ -200,7 +200,7 @@ private:
         return words;
     }
 
-    Query ParseQuery(const string& text) const { // поиск по запросу
+    Query ParseQuery(const string& text) const { // РїРѕРёСЃРє РїРѕ Р·Р°РїСЂРѕСЃСѓ
         Query query_words;
         for (const string& word : SplitIntoWordsNoStop(text)) {
             if (word.at(0) != '-') {
@@ -225,21 +225,21 @@ void PrintDocument(const Document& document) {
 int main() {
     setlocale(LC_ALL, "RUS");
     SearchServer search_server;
-    search_server.SetStopWords("и в на"s);
-    search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-    search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-    search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-    search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
+    search_server.SetStopWords("Рё РІ РЅР°"s);
+    search_server.AddDocument(0, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 8, -3 });
+    search_server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+    search_server.AddDocument(2, "СѓС…РѕР¶РµРЅРЅС‹Р№ РїС‘СЃ РІС‹СЂР°Р·РёС‚РµР»СЊРЅС‹Рµ РіР»Р°Р·Р°"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
+    search_server.AddDocument(3, "СѓС…РѕР¶РµРЅРЅС‹Р№ СЃРєРІРѕСЂРµС† РµРІРіРµРЅРёР№"s, DocumentStatus::BANNED, { 9 });
     cout << "ACTUAL by default:"s << endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s)) {
+    for (const Document& document : search_server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s)) {
         PrintDocument(document);
     }
     cout << "BANNED:"s << endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED)) {
+    for (const Document& document : search_server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, DocumentStatus::BANNED)) {
         PrintDocument(document);
     }
     cout << "Even ids:"s << endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
+    for (const Document& document : search_server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
         PrintDocument(document);
     }
     return 0;
