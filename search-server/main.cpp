@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const int MAX_RESULT_DOCUMENT_COUNT = 5; 
+const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
 
 string ReadLine() {
@@ -85,11 +85,11 @@ public:
         ++document_count_;
     }
 
-    template <typename T>
-    vector<Document> FindTopDocuments(const string& raw_query, T temp_status) const {
+    template <typename DocumentPredicate>
+    vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate predicate) const {
         const Query& query_words = ParseQuery(raw_query);
 
-        auto matched_documents = FindAllDocuments(query_words, temp_status); // returns: id, relevance, rating, status
+        auto matched_documents = FindAllDocuments(query_words, predicate); // returns: id, relevance, rating, status
 
         sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
             if (lhs.relevance != rhs.relevance) {
@@ -115,9 +115,7 @@ public:
     }
 
     vector<Document> FindTopDocuments(const string& raw_query) const {
-        return FindTopDocuments(raw_query, [](const int document_id, const DocumentStatus status, const int rating) {
-            return status == DocumentStatus::ACTUAL;
-            });
+        return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
     }
 
     tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
@@ -138,11 +136,11 @@ public:
     }
 
 private:
+    int document_count_{};
+    set<string> stop_words_;
     map<int, int> ratings; // <document_id, rating> ~ словарь рейтингов
     map<int, DocumentStatus> status; // <document_id, status> ~ словарь статусов
     map<string, map<int, double>> documents_; // <word, map<id_document, relevance>> 
-    int document_count_{};
-    set<string> stop_words_;
 
     struct Query {
         set<string> plus_words;
