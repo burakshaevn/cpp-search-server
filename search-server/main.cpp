@@ -88,18 +88,20 @@ public:
 
     SearchServer() = default;
 
-    explicit SearchServer(const string& container) {
-        if (!IsValidWord(container)) throw invalid_argument("Строка содержит недопустимые символы."s);
-        SetStopWords(container);
-    }
+    explicit SearchServer(const string& container) : SearchServer(set<string>{container})
+    {}
 
     template<typename ContainerType>
     explicit  SearchServer(const ContainerType& container) {
         set<string> set_stop_words;
         for (const auto& stop_word : container) {
             if (!stop_word.empty()) {
-                if (!IsValidWord(stop_word)) throw invalid_argument("Строка содержит недопустимые символы."s);
-                set_stop_words.insert(stop_word);
+                if (!IsValidWord(stop_word)) {
+                    throw invalid_argument("Строка содержит недопустимые символы."s);
+                }
+                else {
+                    set_stop_words.insert(stop_word);
+                }
             }
             else continue;
         }
@@ -128,18 +130,16 @@ public:
     }
 
     void AddDocument(int document_id, const string& raw_query, DocumentStatus status, const vector<int>& ratings) {
-        if (document_id < 0) throw invalid_argument("Получено отрицательное значение id."s);
-        for (const auto& [id, document_content] : documents_) {
-            if (id == document_id) throw invalid_argument("Попытка добавить документ с существующим id."s);
+        if (document_id < 0) {
+            throw invalid_argument("Получено отрицательное значение id."s);
         }
-        for (const auto& token : SplitIntoWords(raw_query)) {
-            if (!IsValidWord(token)) throw invalid_argument("Строка содержит недопустимые символы."s);
-            if (!IsValidMinusWord(token)) throw invalid_argument("Строка имеет некорректное расположение/количество минуса."s);
+        if (std::count(documents_ids_.begin(), documents_ids_.end(), document_id) > 0) {
+            throw invalid_argument("Попытка добавить документ с существующим id."s);
         }
         const vector<string>& words = SplitIntoWordsNoStop(raw_query);
-        const double& td = 1. / static_cast<double>(words.size());
+        const double& tf = 1. / static_cast<double>(words.size()); // я считаю, что это всё же TF 
         for (const string& word : words) {
-            words_freqs_[word][document_id] += td;
+            words_freqs_[word][document_id] += tf;
         }
         documents_ids_.push_back(document_id);
         documents_[document_id].rating_ = ComputeAverageRating(ratings);
@@ -148,12 +148,7 @@ public:
 
     template <typename DocumentPredicate>
     vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate document_predicate) const {
-        for (const auto& token : SplitIntoWords(raw_query)) {
-            if (!IsValidWord(token)) throw invalid_argument("Присутствуют недопустимые символы с кодами [0, 31]."s);
-            if (!IsValidMinusWord(token)) throw invalid_argument("Строка имеет некорректное расположение/количество минуса.");
-        }
         const Query& query_words = ParseQuery(raw_query);
-
         auto matched_documents = FindAllDocuments(query_words, document_predicate); // returns: id, relevance, rating_, status_ 
 
         std::sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
@@ -183,10 +178,6 @@ public:
     }
 
     tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
-        for (const auto& token : SplitIntoWords(raw_query)) {
-            if (!IsValidWord(token)) throw invalid_argument("Присутствуют недопустимые символы с кодами [0, 31]."s);
-            if (!IsValidMinusWord(token)) throw invalid_argument("Строка имеет некорректное расположение/количество минуса.");
-        }
         const Query query = ParseQuery(raw_query);
         vector<string> matched_words;
         for (const string& word : query.plus_words) { // проходимся по плюс-словам 
@@ -219,15 +210,21 @@ private:
     map<int, DocumentData> documents_; // returns: <document_id, <rating_, status_>>   
     vector<int> documents_ids_;
 
-    static bool IsValidWord(const string& word) { // Проверка на наличие спец-символов
+    static bool IsValidWord(const string& word) { // Проверка на наличие спецсимволов
         return none_of(word.begin(), word.end(), [](char c) {
             return c >= '\0' && c < ' ';
             });
     }
 
-    static bool IsValidMinusWord(const string& word) { // Проверка на двойной минус и гуляющий минус в любом месте строки (до/после слова)
-        if ((word[0] == '-' and word[1] == '-') or word.empty()) return false;
-        if (word == "-"s or word.at(word.size() - 1) == '-') return false;
+    static bool IsValidMinusWord(const string& word) { // Проверка на ненужный минус
+        if ((word[0] == '-' and word[1] == '-') or word.empty()) {
+            return false;
+        }
+        if (word == "-"s) {
+            return false;
+        }
+        /*word.at(word.size() - 1) == '-' вставил чтобы проверить, что после слов минусов нет.
+        и по факту word.at(word.size() - 1) == '-' уже ничего не значит, потому что word == "-"s это и проверяет.*/
         return true;
     }
 
@@ -235,7 +232,7 @@ private:
     vector<Document> FindAllDocuments(const Query& query_words, T status) const {
         map<int, double> document_to_relevance; // <document_id, relevance> 
         for (const string& plus_word : query_words.plus_words) {
-            if (words_freqs_.count(plus_word)) { // если 
+            if (words_freqs_.count(plus_word)) {
                 for (auto& [document_id, tf] : words_freqs_.at(plus_word)) {
                     if (status(document_id, documents_.at(document_id).status_, documents_.at(document_id).rating_)) {
                         document_to_relevance[document_id] += ComputeIDF(plus_word) * tf;
@@ -275,6 +272,9 @@ private:
     vector<string> SplitIntoWordsNoStop(const string& text) const {
         vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
+            if (!IsValidWord(word)) {
+                throw invalid_argument("Строка содержит недопустимые символы."s);
+            }
             if (!IsStopWord(word)) {
                 words.push_back(word);
             }
@@ -283,6 +283,14 @@ private:
     }
 
     Query ParseQuery(const string& text) const { // поиск по запросу 
+        for (const auto& token : SplitIntoWords(text)) {
+            if (!IsValidWord(token)) {
+                throw invalid_argument("Присутствуют недопустимые символы с кодами [0, 31]."s);
+            }
+            if (!IsValidMinusWord(token)) {
+                throw invalid_argument("Строка имеет некорректное расположение/количество минуса.");
+            }
+        }
         Query query_words;
         for (const string& word : SplitIntoWordsNoStop(text)) {
             if (word.at(0) != '-') {
