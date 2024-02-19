@@ -137,9 +137,10 @@ public:
             throw invalid_argument("Попытка добавить документ с существующим id."s);
         }
         const vector<string>& words = SplitIntoWordsNoStop(raw_query);
-        const double& tf = 1. / static_cast<double>(words.size()); // я считаю, что это всё же TF 
+        const double temp = 1. / static_cast<double>(words.size()); 
+        // TF - частота слова в конкретном документе
         for (const string& word : words) {
-            words_freqs_[word][document_id] += tf;
+            words_freqs_[word][document_id] += temp;
         }
         documents_ids_.push_back(document_id);
         documents_[document_id].rating_ = ComputeAverageRating(ratings);
@@ -223,8 +224,6 @@ private:
         if (word == "-"s) {
             return false;
         }
-        /*word.at(word.size() - 1) == '-' вставил чтобы проверить, что после слов минусов нет.
-        и по факту word.at(word.size() - 1) == '-' уже ничего не значит, потому что word == "-"s это и проверяет.*/
         return true;
     }
 
