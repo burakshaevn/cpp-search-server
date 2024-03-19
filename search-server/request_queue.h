@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include "document.h"
 #include "search_server.h"
@@ -12,7 +12,7 @@ public:
         , no_result_requests(0) {
     }
 
-    // сделаем "обёртки" для всех методов поиска, чтобы сохранять результаты для нашей статистики
+    // СЃРґРµР»Р°РµРј "РѕР±С‘СЂС‚РєРё" РґР»СЏ РІСЃРµС… РјРµС‚РѕРґРѕРІ РїРѕРёСЃРєР°, С‡С‚РѕР±С‹ СЃРѕС…СЂР°РЅСЏС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹ РґР»СЏ РЅР°С€РµР№ СЃС‚Р°С‚РёСЃС‚РёРєРё
     template <typename DocumentPredicate>
     std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate);
 
@@ -27,11 +27,11 @@ private:
         uint64_t  timestamp;
         size_t results;
     };
-    std::deque<QueryResult> requests_; // Очередь запросов для обработки и хранения результатов
-    const static int min_in_day_ = 1440; // Количество минут в сутках для анализа статистики
+    std::deque<QueryResult> requests_; // РћС‡РµСЂРµРґСЊ Р·Р°РїСЂРѕСЃРѕРІ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё Рё С…СЂР°РЅРµРЅРёСЏ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ
+    const static int min_in_day_ = 1440; // РљРѕР»РёС‡РµСЃС‚РІРѕ РјРёРЅСѓС‚ РІ СЃСѓС‚РєР°С… РґР»СЏ Р°РЅР°Р»РёР·Р° СЃС‚Р°С‚РёСЃС‚РёРєРё
     const SearchServer& search_server_;
     uint64_t  current_time;
-    int no_result_requests; // количество запросов без результатов за последние сутки
+    int no_result_requests; // РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїСЂРѕСЃРѕРІ Р±РµР· СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ Р·Р° РїРѕСЃР»РµРґРЅРёРµ СЃСѓС‚РєРё
 
     void RecordTheResult(size_t size);
 };

@@ -1,4 +1,4 @@
-#include "request_queue.h"
+п»ї#include "request_queue.h"
 
 template <typename DocumentPredicate>
 std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
@@ -26,7 +26,7 @@ int RequestQueue::GetNoResultRequests() const {
 void RequestQueue::RecordTheResult(size_t size) {
     ++current_time;
 
-    // Удаление всех результатов поиска, которые устарели
+    // РЈРґР°Р»РµРЅРёРµ РІСЃРµС… СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ РїРѕРёСЃРєР°, РєРѕС‚РѕСЂС‹Рµ СѓСЃС‚Р°СЂРµР»Рё
     while (!requests_.empty() && min_in_day_ <= current_time - requests_.front().timestamp) {
         if (requests_.front().results == 0) {
             --no_result_requests;
@@ -34,7 +34,7 @@ void RequestQueue::RecordTheResult(size_t size) {
         requests_.pop_front();
     }
 
-    // Сохранение нового результата поиска
+    // РЎРѕС…СЂР°РЅРµРЅРёРµ РЅРѕРІРѕРіРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р° РїРѕРёСЃРєР°
     requests_.push_back({ current_time, size });
     if (size == 0) {
         ++no_result_requests;

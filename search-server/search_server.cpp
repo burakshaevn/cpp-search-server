@@ -1,4 +1,4 @@
-#include "search_server.h"
+п»ї#include "search_server.h"
 #include "string_processing.h"
 
 int SearchServer::GetDocumentId(int index) const {
@@ -6,7 +6,7 @@ int SearchServer::GetDocumentId(int index) const {
         return documents_ids_.at(index);
     }
     catch (const std::exception&) {
-        throw std::out_of_range("Значение id выходит за пределы [0, " + std::to_string(GetDocumentCount()) + ").");
+        throw std::out_of_range("Р—РЅР°С‡РµРЅРёРµ id РІС‹С…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ [0, " + std::to_string(GetDocumentCount()) + ").");
     }
 }
 
@@ -22,14 +22,14 @@ void SearchServer::SetStopWords(const std::string& text) {
 
 void SearchServer::AddDocument(int document_id, const std::string& raw_query, DocumentStatus status, const std::vector<int>& ratings) {
     if (document_id < 0) {
-        throw std::invalid_argument("Получено отрицательное значение id."s);
+        throw std::invalid_argument("РџРѕР»СѓС‡РµРЅРѕ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ id."s);
     }
     if (std::count(documents_ids_.begin(), documents_ids_.end(), document_id) > 0) {
-        throw std::invalid_argument("Попытка добавить документ с существующим id."s);
+        throw std::invalid_argument("РџРѕРїС‹С‚РєР° РґРѕР±Р°РІРёС‚СЊ РґРѕРєСѓРјРµРЅС‚ СЃ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРј id."s);
     }
     const std::vector<std::string>& words = SplitIntoWordsNoStop(raw_query);
     const double temp = 1. / static_cast<double>(words.size());
-    // TF - частота слова в конкретном документе
+    // TF - С‡Р°СЃС‚РѕС‚Р° СЃР»РѕРІР° РІ РєРѕРЅРєСЂРµС‚РЅРѕРј РґРѕРєСѓРјРµРЅС‚Рµ
     for (const std::string& word : words) {
         words_freqs_[word][document_id] += temp;
     }
@@ -51,7 +51,7 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_quer
 std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query, int document_id) const {
     const Query query = ParseQuery(raw_query);
     std::vector<std::string> matched_words;
-    for (const std::string& word : query.plus_words) { // проходимся по плюс-словам 
+    for (const std::string& word : query.plus_words) { // РїСЂРѕС…РѕРґРёРјСЃСЏ РїРѕ РїР»СЋСЃ-СЃР»РѕРІР°Рј 
         if (words_freqs_.at(word).count(document_id)) {
             matched_words.push_back(word);
         }
@@ -65,13 +65,13 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     return std::tie(matched_words, documents_.at(document_id).status_);
 }
 
- bool SearchServer::IsValidWord(const std::string& word) { // Проверка на наличие спецсимволов
+ bool SearchServer::IsValidWord(const std::string& word) { // РџСЂРѕРІРµСЂРєР° РЅР° РЅР°Р»РёС‡РёРµ СЃРїРµС†СЃРёРјРІРѕР»РѕРІ
     return std::none_of(word.begin(), word.end(), [](char c) {
         return c >= '\0' && c < ' ';
         });
 }
 
-bool SearchServer::IsValidMinusWord(const std::string& word) { // Проверка на ненужный минус
+bool SearchServer::IsValidMinusWord(const std::string& word) { // РџСЂРѕРІРµСЂРєР° РЅР° РЅРµРЅСѓР¶РЅС‹Р№ РјРёРЅСѓСЃ
     if ((word[0] == '-' and word[1] == '-') or word.empty()) {
         return false;
     }
@@ -102,7 +102,7 @@ std::vector<std::string> SearchServer::SplitIntoWordsNoStop(const std::string& t
     std::vector<std::string> words;
     for (const std::string& word : SplitIntoWords(text)) {
         if (!IsValidWord(word)) {
-            throw std::invalid_argument("Строка содержит недопустимые символы."s);
+            throw std::invalid_argument("РЎС‚СЂРѕРєР° СЃРѕРґРµСЂР¶РёС‚ РЅРµРґРѕРїСѓСЃС‚РёРјС‹Рµ СЃРёРјРІРѕР»С‹."s);
         }
         if (!IsStopWord(word)) {
             words.push_back(word);
@@ -111,13 +111,13 @@ std::vector<std::string> SearchServer::SplitIntoWordsNoStop(const std::string& t
     return words;
 }
 
-SearchServer::Query SearchServer::ParseQuery(const std::string& text) const { // поиск по запросу 
+SearchServer::Query SearchServer::ParseQuery(const std::string& text) const { // РїРѕРёСЃРє РїРѕ Р·Р°РїСЂРѕСЃСѓ 
     for (const auto& token : SplitIntoWords(text)) {
         if (!IsValidWord(token)) {
-            throw std::invalid_argument("Присутствуют недопустимые символы с кодами [0, 31]."s);
+            throw std::invalid_argument("РџСЂРёСЃСѓС‚СЃС‚РІСѓСЋС‚ РЅРµРґРѕРїСѓСЃС‚РёРјС‹Рµ СЃРёРјРІРѕР»С‹ СЃ РєРѕРґР°РјРё [0, 31]."s);
         }
         if (!IsValidMinusWord(token)) {
-            throw std::invalid_argument("Строка имеет некорректное расположение/количество минуса.");
+            throw std::invalid_argument("РЎС‚СЂРѕРєР° РёРјРµРµС‚ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕРµ СЂР°СЃРїРѕР»РѕР¶РµРЅРёРµ/РєРѕР»РёС‡РµСЃС‚РІРѕ РјРёРЅСѓСЃР°.");
         }
     }
     Query query_words;

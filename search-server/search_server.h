@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include <algorithm>
 #include <cmath>
@@ -33,7 +33,7 @@ public:
         for (const auto& stop_word : container) {
             if (!stop_word.empty()) {
                 if (!IsValidWord(stop_word)) {
-                    throw std::invalid_argument("Строка содержит недопустимые символы."s);
+                    throw std::invalid_argument("РЎС‚СЂРѕРєР° СЃРѕРґРµСЂР¶РёС‚ РЅРµРґРѕРїСѓСЃС‚РёРјС‹Рµ СЃРёРјРІРѕР»С‹."s);
                 }
                 else {
                     set_stop_words.insert(stop_word);

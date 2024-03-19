@@ -1,14 +1,14 @@
-#pragma once
+п»ї#pragma once
 
 #include <iostream>
 
 using namespace std::string_literals;
 
 enum class DocumentStatus {
-    ACTUAL, // актуальный 
-    IRRELEVANT, // устаревший 
-    BANNED, // отклонённый 
-    REMOVED // удалённый 
+    ACTUAL, // Р°РєС‚СѓР°Р»СЊРЅС‹Р№ 
+    IRRELEVANT, // СѓСЃС‚Р°СЂРµРІС€РёР№ 
+    BANNED, // РѕС‚РєР»РѕРЅС‘РЅРЅС‹Р№ 
+    REMOVED // СѓРґР°Р»С‘РЅРЅС‹Р№ 
 };
 
 struct Document {
