@@ -38,27 +38,6 @@ void SearchServer::AddDocument(int document_id, const std::string& raw_query, Do
     documents_[document_id].status_ = status;
 }
 
-template <typename DocumentPredicate>
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
-    const Query query_words = ParseQuery(raw_query);
-    auto matched_documents = FindAllDocuments(query_words, document_predicate); // returns: id, relevance, rating_, status_ 
-
-    std::sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-        if (lhs.relevance != rhs.relevance) {
-            return lhs.relevance > rhs.relevance;
-        }
-        else if (std::abs(lhs.relevance - rhs.relevance) < EPSILON) {
-            return lhs.rating > rhs.rating;
-        }
-        else return false;
-        });
-
-    if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-        matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-    }
-    return matched_documents;
-}
-
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status_) const {
     return  FindTopDocuments(raw_query, [&status_](const int document_id, const DocumentStatus t_status, const int rating_) {
         return status_ == t_status;
@@ -100,32 +79,6 @@ bool SearchServer::IsValidMinusWord(const std::string& word) { // Проверк
         return false;
     }
     return true;
-}
-
-template <typename T>
-std::vector<Document> SearchServer::FindAllDocuments(const Query& query_words, T status) const {
-    std::map<int, double> document_to_relevance; // <document_id, relevance> 
-    for (const std::string& plus_word : query_words.plus_words) {
-        if (words_freqs_.count(plus_word)) {
-            for (auto& [document_id, tf] : words_freqs_.at(plus_word)) {
-                if (status(document_id, documents_.at(document_id).status_, documents_.at(document_id).rating_)) {
-                    document_to_relevance[document_id] += ComputeIDF(plus_word) * tf;
-                }
-            }
-        }
-    }
-    for (const std::string& minus_word : query_words.minus_words) {
-        if (words_freqs_.count(minus_word)) {
-            for (const auto& [document_id, relevance] : words_freqs_.at(minus_word)) {
-                document_to_relevance.erase(document_id);
-            }
-        }
-    }
-    std::vector<Document> matched_documents;
-    for (auto& [document_id, relevance] : document_to_relevance) {
-        matched_documents.push_back({ document_id, relevance, documents_.at(document_id).rating_, documents_.at(document_id).status_ });
-    }
-    return matched_documents;
 }
 
 int SearchServer::ComputeAverageRating(const std::vector<int>& ratings_) {
