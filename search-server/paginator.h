@@ -8,7 +8,7 @@ template <typename Iterator>
 class IteratorRange {
 public:
     IteratorRange(Iterator range_begin, Iterator range_end)
-        : begin_(range_begin), end_(range_end), size_(distance(begin_, end_))
+        : begin_(range_begin), end_(range_end)
     {}
 
     Iterator begin() const {
@@ -20,12 +20,12 @@ public:
     }
 
     Iterator size() const {
-        return size_;
+        return std::distance(begin_, end_);
     }
 
 private:
-    Iterator begin_, end_;
-    size_t size_;
+    Iterator begin_;
+    Iterator end_;
 };
 
 template <typename Iterator>
